@@ -1,14 +1,15 @@
 import express from 'express';
 import mongoose from 'mongoose';
-import { MONGODB_URI, PORT } from '../../../src/config/env';
 import cors from 'cors';
-
+import userRoutes from '../../src/server/routes/userRoutes';
+// import taskRoutes from '../../src/server/routes/taskRoutes'; // Create this file for task routes
+import { MONGODB_URI, PORT } from '../config/env'; // Adjust the path as needed
 
 const app = express();
 
 app.use(cors({
-  origin: 'http://localhost:3000', // Specify your frontend's URL
-  methods: ['GET', 'POST'], // Specify allowed methods
+  origin: 'http://localhost:3000', // Your Next.js frontend URL
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
 }));
 
 app.use(express.json());
@@ -21,22 +22,14 @@ if (!MONGODB_URI) {
 // Connect to MongoDB
 mongoose.connect(MONGODB_URI)
   .then(() => console.log('Connected to MongoDB'))
-  .catch((err) => {
+  .catch(err => {
     console.error('MongoDB connection error:', err);
     process.exit(1);
   });
 
-// Error handling middleware
-app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-  console.error(err.stack);
-  res.status(500).send('Something broke!');
-});
-
-// API routes will be added here
-
-app.get('/api/test', (_req, res) => {
-  res.send('API is working');
-});
+// Use routes
+app.use('/api/auth', userRoutes);
+// app.use('/api/tasks', taskRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
