@@ -32,6 +32,7 @@ Before you begin, ensure you have the following installed:
 
 
 ## Project Structure
+```bash
 /
 ├── components/    # React components
 ├── pages/         # Next.js pages
@@ -41,6 +42,7 @@ Before you begin, ensure you have the following installed:
 ├── models/        # MongoDB models
 ├── api/           # API routes
 └── redux/         # Redux store, actions, and reducers (if using Redux)
+```
 
 ## API Endpoints
 
@@ -56,7 +58,6 @@ Before you begin, ensure you have the following installed:
 This application is deployed at: [https://your-app-url.com](https://your-app-url.com)
 
 ## Contributing
-
 Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
