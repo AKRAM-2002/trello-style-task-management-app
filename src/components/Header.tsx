@@ -2,19 +2,26 @@ import Link from 'next/link';
 import Image from 'next/image'; // Ensure this import is correct
 import { FaSearch } from 'react-icons/fa';
 
-export default function Header({ username, onCreateNew }) {
+export default function Header({ username, onCreateNew, onMenuClick}) {
   return (
     <header className="mb-8">
       {/* First row */}
-      <div className="flex justify-between items-center mb-0">
-        <h1 className="text-2xl font-bold">Good morning, {username}!</h1>
+      <div className="flex justify-between items-center mb-4">
+        <div className="flex items-center">
+          <button onClick={onMenuClick} className="mr-4 md:hidden">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+          <h1 className="text-2xl font-bold">Good morning, {username}!</h1>
+        </div>
         <Link href="/help-feedback" className="text-blue-600 hover:underline">
           Help & feedback
         </Link>
       </div>
 
       {/* Second row */}
-      <div className="flex space-x-4 mb-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
         {/* First Card */}
         <div className="flex-1 bg-white p-4 rounded-lg shadow-md flex items-center">
           <div className="flex-shrink-0 w-1/4">
@@ -68,9 +75,9 @@ export default function Header({ username, onCreateNew }) {
       </div>
 
       {/* Third row */}
-      <div className="flex justify-between items-center">
-      <div className="flex mb-4">
-          <div className="flex-1 bg-white p-2 rounded-lg shadow-md flex items-center border border-gray-300">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0">
+        <div className="w-full md:w-auto mb-4 md:mb-0">
+          <div className="bg-white p-2 rounded-lg shadow-md flex items-center border border-gray-300">
             <input
               type="text"
               placeholder="Search..."
@@ -98,7 +105,7 @@ export default function Header({ username, onCreateNew }) {
             <span className="ml-2">Share</span>
           </button>
         </div>
-        <button onClick={onCreateNew} className="px-4 py-4 bg-purple-600 text-white rounded-full flex items-center">
+        <button onClick={onCreateNew} className="px-4 py-4 bg-purple-600 text-white rounded-full flex items-center mt-4 md:mt-0">
           <Image src="/icons/create-icon.png" height="20" width="20" alt="Create" />
           <span className="ml-2">Create new</span>
         </button>

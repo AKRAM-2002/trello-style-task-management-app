@@ -1,43 +1,82 @@
 'use client';
-
 import { useState, useEffect } from 'react';
+import axios from 'axios';
 import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
 import TaskBoard from '@/components/TaskBoard';
 import TaskModal from '@/components/TaskModal';
 
-
-const initialTasks = [
-  { id: '1', content: 'Implement User Authentication', status: 'To do', priority: 'High', dueDate: '2024-08-15' },
-  { id: '2', content: 'Design Home Page UI', status: 'In progress', priority: 'Medium', dueDate: '2024-08-15' },
-  { id: '3', content: 'Integrate Cloud Storage', status: 'Under review', priority: 'High', dueDate: '2024-08-20' },
-  { id: '4', content: 'Test Cross-Browser Compatibility', status: 'Finished', priority: 'Low', dueDate: '2024-07-30' },
-  { id: '5', content: 'Conduct User Feedback Survey', status: 'In progress', priority: 'Medium', dueDate: '2024-08-05' },
-];
-
-
-
 export default function Dashboard() {
-  const [tasks, setTasks] = useState(initialTasks);
-  const [username, setUsername] = useState('');
+  const [tasks, setTasks] = useState([]);
+  const [username, setUsername] = useState('Joe Gardner');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
-    // Fetch user data here
-    setUsername('Joe Gardner');
+    fetchTasks();
   }, []);
 
-  const handleCreateNew = () => {
-    setIsModalOpen(true);
+  const fetchTasks = async () => {
+    try {
+      const response = await axios.get('/api/tasks/AllTasks');
+      setTasks(response.data);
+    } catch (error) {
+      console.error('Error fetching tasks:', error);
+    }
+  };
+
+  const handleCreateNew = async (newTask) => {
+    try {
+      const response = await axios.post('/api/newTask', newTask);
+      setTasks([...tasks, response.data]);
+    } catch (error) {
+      console.error('Error creating task:', error);
+    }
+  };
+
+  const handleUpdateTask = async (updatedTask) => {
+    try {
+      const response = await axios.put(`/api/tasks/${updatedTask.id}`, updatedTask);
+      setTasks(tasks.map(task => (task.id === response.data.id ? response.data : task)));
+    } catch (error) {
+      console.error('Error updating task:', error);
+    }
+  };
+
+  const handleDeleteTask = async (taskId) => {
+    try {
+      await axios.delete(`/api/tasks/${taskId}`);
+      setTasks(tasks.filter(task => task.id !== taskId));
+    } catch (error) {
+      console.error('Error deleting task:', error);
+    }
   };
 
   return (
-    <div className="flex h-screen bg-gray-100">
-      <Sidebar onCreateNew={handleCreateNew} />
-      <main className="flex-1 p-10 overflow-auto">
-        <Header username={username} onCreateNew={handleCreateNew} />
-        <TaskBoard tasks={tasks} setTasks={setTasks} onCreateNew={handleCreateNew} />
-        <TaskModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+    <div className="flex flex-col h-screen bg-gray-100 md:flex-row">
+      <Sidebar
+        onCreateNew={() => setIsModalOpen(true)}
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+      />
+      <main className="flex-1 p-4 md:p-10 overflow-auto">
+        <Header
+          username={username}
+          onCreateNew={() => setIsModalOpen(true)}
+          onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)}
+        />
+        <TaskBoard
+          tasks={tasks}
+          setTasks={setTasks}
+          onCreateNew={() => setIsModalOpen(true)}
+          onUpdateTask={handleUpdateTask}
+          onDeleteTask={handleDeleteTask}
+        />
+        <TaskModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onCreateNew={handleCreateNew}
+        />
       </main>
     </div>
   );

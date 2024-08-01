@@ -1,15 +1,8 @@
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
-import Image from 'next/image'
-interface Task {
-  id: string;
-  content: string;
-  status: 'To do' | 'In progress' | 'Under review' | 'Finished';
-  priority?: 'Low' | 'Medium' | 'High';
-  dueDate?: string;
-}
+import Image from 'next/image';
 
-export default function TaskBoard({ tasks, setTasks, onCreateNew }: { tasks: Task[], setTasks: (tasks: Task[]) => void }) {
-  const onDragEnd = (result: any) => {
+export default function TaskBoard({ tasks, setTasks, onCreateNew, onUpdateTask, onDeleteTask }) {
+  const onDragEnd = (result) => {
     if (!result.destination) return;
 
     const newTasks = Array.from(tasks);
@@ -18,18 +11,19 @@ export default function TaskBoard({ tasks, setTasks, onCreateNew }: { tasks: Tas
     newTasks.splice(result.destination.index, 0, reorderedItem);
 
     setTasks(newTasks);
+    onUpdateTask(reorderedItem);
   };
 
   return (
     <DragDropContext onDragEnd={onDragEnd}>
-      <div className="flex space-x-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2">
         {['To do', 'In progress', 'Under review', 'Finished'].map((status) => (
           <Droppable key={status} droppableId={status}>
             {(provided) => (
               <div
                 {...provided.droppableProps}
                 ref={provided.innerRef}
-                className="bg-gray-100  rounded-lg w-1/2"
+                className="bg-gray-100 rounded-lg"
               >
                 <h2 className="font-semibold mb-4">{status}</h2>
                 {tasks
@@ -54,6 +48,7 @@ export default function TaskBoard({ tasks, setTasks, onCreateNew }: { tasks: Tas
                             </span>
                           )}
                           {task.dueDate && <p className="text-sm text-gray-500">{task.dueDate}</p>}
+                          <button onClick={() => onDeleteTask(task.id)}>Delete</button>
                         </div>
                       )}
                     </Draggable>

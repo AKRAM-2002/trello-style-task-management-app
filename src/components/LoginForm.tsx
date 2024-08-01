@@ -13,6 +13,7 @@ export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [token, setToken] = useState('');
 
 
   const handleSubmit = async (e) => {
@@ -37,6 +38,9 @@ export default function LoginForm() {
 
       // Handle successful login, e.g., store token, redirect user
       console.log('Login successful:', data);
+      const result = await response.json();
+      setToken(result.token);
+      
     } catch (err) {
       setError(err.message);
     } finally {

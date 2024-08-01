@@ -2,13 +2,13 @@ import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import userRoutes from '../../src/server/routes/userRoutes';
-// import taskRoutes from '../../src/server/routes/taskRoutes'; // Create this file for task routes
-import { MONGODB_URI, PORT } from '../config/env'; // Adjust the path as needed
+import taskRoutes from '../../src/server/routes/taskRoutes'; // task routes
+import { MONGODB_URI, PORT } from '../config/env'; 
 
 const app = express();
 
 app.use(cors({
-  origin: 'http://localhost:3000', // Your Next.js frontend URL
+  origin: 'http://localhost:3000', // Next.js frontend URL
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
 }));
 
@@ -29,7 +29,7 @@ mongoose.connect(MONGODB_URI)
 
 // Use routes
 app.use('/api/auth', userRoutes);
-// app.use('/api/tasks', taskRoutes);
+app.use('/api/tasks', taskRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);

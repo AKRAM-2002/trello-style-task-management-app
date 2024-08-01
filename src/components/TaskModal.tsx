@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 
 interface TaskModalProps {
   isOpen: boolean;
   onClose: () => void;
+  
 }
 
 const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose }) => {
@@ -13,6 +15,23 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose }) => {
   const [description, setDescription] = useState('');
 
   if (!isOpen) return null;
+
+  const handleSubmit = async () => {
+    try {
+      const response = await axios.post('/api/tasks/newTask', {
+        title,
+        status,
+        priority,
+        deadline,
+        description,
+        userId: '', 
+      });
+      console.log('Task created:', response.data);
+      onClose(); // Close the modal after creating the task
+    } catch (error) {
+      console.error('Error creating task:', error);
+    }
+  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-end">
@@ -25,7 +44,8 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose }) => {
             </svg>
           </button>
         </div>
-        <form>
+        <form onSubmit={handleSubmit}>
+          {/* Form Fields */}
           <div className="mb-4">
             <input
               type="text"
@@ -42,10 +62,10 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose }) => {
               className="w-full p-2 border rounded"
             >
               <option value="">Select Status</option>
-              <option value="to-do">To Do</option>
-              <option value="in-progress">In Progress</option>
-              <option value="under-review">Under Review</option>
-              <option value="completed">Completed</option>
+              <option value="To-Do">To Do</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Under Review">Under Review</option>
+              <option value="Completed">Completed</option>
             </select>
           </div>
           <div className="mb-4">
@@ -55,9 +75,9 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose }) => {
               className="w-full p-2 border rounded"
             >
               <option value="">Select Priority</option>
-              <option value="low">Low</option>
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
+              <option value="Low">Low</option>
+              <option value="Medium">Medium</option>
+              <option value="High">High</option>
             </select>
           </div>
           <div className="mb-4">
@@ -77,8 +97,8 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose }) => {
               rows={4}
             />
           </div>
-          <button  type="button" className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">
-            Add custom property
+          <button type="submit" className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">
+            Create Task
           </button>
         </form>
       </div>
