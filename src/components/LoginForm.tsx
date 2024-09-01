@@ -6,6 +6,7 @@ import IconButton from '@mui/material/IconButton';
 import InputAdornment from '@mui/material/InputAdornment';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
+import { useRouter } from 'next/navigation';
 
 export default function LoginForm() {
   const [email, setEmail] = useState('');
@@ -13,14 +14,29 @@ export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [token, setToken] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const router = useRouter();
 
+  const validateEmail = () => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setEmailError('Please enter a valid email address');
+      return false;
+    }
+    setEmailError('');
+    return true;
+  };
+
+  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validateEmail()) return;
+  
     setLoading(true);
     setError('');
-
+  
     try {
       const response = await fetch('/api/login', {
         method: 'POST',
@@ -29,25 +45,23 @@ export default function LoginForm() {
         },
         body: JSON.stringify({ email, password }),
       });
-
+  
       const data = await response.json();
-
+  
       if (!response.ok) {
-        throw new Error(data.message || 'Something went wrong');
+        throw new Error(data.error || 'Something went wrong');
       }
-
-      // Handle successful login, e.g., store token, redirect user
+  
       console.log('Login successful:', data);
-      const result = await response.json();
-      setToken(result.token);
-      
+      localStorage.setItem('token', data.token); // Store token in localStorage
+      router.push('/dashboard'); // Redirect to dashboard after successful login
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
   };
-
+  
 
   const togglePasswordVisibility = () => {
     setShowPassword((prevState) => !prevState);
@@ -65,21 +79,25 @@ export default function LoginForm() {
           <input
             type="email"
             placeholder="Your email"
-            className="w-full p-2 border border-gray-300 rounded-md bg-gray-100"
+            className={`w-full p-2 border rounded-md bg-gray-100 ${emailError ? 'border-red-500' : 'border-gray-300'}`}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            onBlur={validateEmail}
             required
           />
+          {emailError && <p className="text-red-500 text-sm mt-1">{emailError}</p>}
         </div>
         <div className="mb-6 relative">
           <input
             type={showPassword ? 'text' : 'password'}
             placeholder="Password"
-            className="w-full p-2 border border-gray-300 rounded-md bg-gray-100"
+            className={`w-full p-2 border rounded-md bg-gray-100 ${passwordError ? 'border-red-500' : 'border-gray-300'}`}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            
             required
           />
+          {passwordError && <p className="text-red-500 text-sm mt-1">{passwordError}</p>}
           <InputAdornment position="end" className="absolute right-3 top-2.5">
             <IconButton
               onClick={togglePasswordVisibility}
@@ -90,19 +108,20 @@ export default function LoginForm() {
             </IconButton>
           </InputAdornment>
         </div>
+        {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
         <button
           type="submit"
-          className="w-full bg-button-gradient text-white py-2 rounded-md transition-colors bg-button-gradient-hover"
+          className={`w-full bg-button-gradient text-white py-2 rounded-md transition-colors ${loading ? 'bg-gray-400' : 'bg-button-gradient-hover'}`}
+          disabled={loading}
         >
-          Login
+          {loading ? 'Logging in...' : 'Login'}
         </button>
       </form>
       <p className="mt-4 text-center text-sm">
         Don&apos;t have an account? Create a{' '}
         <Link href="/signup" className="text-secondary-55 hover:underline">
-          new account?
+          new account
         </Link>
-        
       </p>
     </div>
   );

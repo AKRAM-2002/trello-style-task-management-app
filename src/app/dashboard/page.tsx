@@ -5,27 +5,31 @@ import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
 import TaskBoard from '@/components/TaskBoard';
 import TaskModal from '@/components/TaskModal';
+import { useRouter } from 'next/navigation';
+
+
 
 export default function Dashboard() {
+
+  const router = useRouter()
+
+  useEffect(() => { 
+    const token = localStorage.getItem('token'); // Use localStorage for development
+    //console.log(token);
+    if (!token) { 
+      router.push('/login');
+    } else {
+      // Token is available, proceed with fetching tasks or other actions
+    }
+  }, []);
+  
   const [tasks, setTasks] = useState([]);
   const [username, setUsername] = useState('Joe Gardner');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  useEffect(() => {
-    fetchTasks();
-  }, []);
 
-  const fetchTasks = async () => {
-    try {
-      const response = await axios.get('/api/tasks/AllTasks');
-      setTasks(response.data);
-    } catch (error) {
-      console.error('Error fetching tasks:', error);
-    }
-  };
-
-  const handleCreateNew = async (newTask) => {
+  const handleCreateNew = async (newTask: { title: string; description: string; }) => {
     try {
       const response = await axios.post('/api/newTask', newTask);
       setTasks([...tasks, response.data]);

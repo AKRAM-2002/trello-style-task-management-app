@@ -1,70 +1,113 @@
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
-import Image from 'next/image';
+import React, { useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { DragDropContext, Droppable, DropResult } from "@hello-pangea/dnd";
+import Column from './Column';
+import { fetchTasks, reorderColumns, updateTask, setTasks} from 'store/taskSlice';
+import { RootState } from 'store';
 
-export default function TaskBoard({ tasks, setTasks, onCreateNew, onUpdateTask, onDeleteTask }) {
-  const onDragEnd = (result) => {
-    if (!result.destination) return;
 
-    const newTasks = Array.from(tasks);
-    const [reorderedItem] = newTasks.splice(result.source.index, 1);
-    reorderedItem.status = result.destination.droppableId;
-    newTasks.splice(result.destination.index, 0, reorderedItem);
+const TaskBoard = () => {
+  const dispatch = useDispatch();
+  const tasks = useSelector((state: RootState) => state.tasks.tasks);
+  const columns = useSelector((state : RootState) => state.tasks.columns);
 
-    setTasks(newTasks);
-    onUpdateTask(reorderedItem);
-  };
+  useEffect(() => {
+    dispatch(fetchTasks() as any);
+  }, [dispatch]);
+
+  const handleOnDragEnd = (result: DropResult) => {
+    
+
+    const { destination , source, type } = result;
+
+    if (!destination) return;
+
+    // Handle column drag
+    if (type === "column") {
+      dispatch(reorderColumns({ sourceIndex: source.index, destinationIndex: destination.index }));
+    }
+
+
+    // Handle task drag
+    const startColumnId = source.droppableId;
+    const endColumnId = destination.droppableId;
+
+    
+    // Get the tasks for the current columns
+    const startColumn = tasks.filter(task => task.status === startColumnId);
+    const endColumn = tasks.filter(task => task.status === endColumnId);
+
+    // Case 1: Dragging between different columns (API call needed)
+    if (startColumnId != endColumnId) {
+
+      const movedTask = tasks.find(task => task._id === result.draggableId);
+
+        if (movedTask) {
+            const updatedTask = {
+                ...movedTask,
+                status: endColumnId
+            };
+            
+
+            // Store the previous state for potential rollback
+            const previousTasks = [...tasks];
+
+            // Update the task's status visually
+            const updatedTasks = tasks.map(task =>
+                task._id === movedTask._id ? updatedTask : task 
+            );
+
+            dispatch(setTasks(updatedTasks));
+
+            // Persist the change to the database
+            dispatch(updateTask(updatedTask) as any)
+                .then((response: any) => {
+                    if (response.type === 'tasks/updateTask/fulfilled') {
+                        console.log('Task status updated in the database');
+                    } else {
+                        console.error('Failed to update task in the database, rolling back...');
+                        // Rollback the visual change if API call fails
+                        dispatch(setTasks(previousTasks));
+                    }
+                })
+                .catch((error: any) => {
+                    console.error('API error occurred, rolling back...', error);
+                    // Rollback the visual change in case of an API error
+                    dispatch(setTasks(previousTasks));
+                });
+        
+    } else {
+        // Case 2: Dragging within the same column (only visually change the order) 
+        dispatch(reorderColumns({ sourceIndex: source.index, destinationIndex: destination.index }));
+    }
+  }
+};
+
 
   return (
-    <DragDropContext onDragEnd={onDragEnd}>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2">
-        {['To do', 'In progress', 'Under review', 'Finished'].map((status) => (
-          <Droppable key={status} droppableId={status}>
-            {(provided) => (
-              <div
-                {...provided.droppableProps}
-                ref={provided.innerRef}
-                className="bg-gray-100 rounded-lg"
-              >
-                <h2 className="font-semibold mb-4">{status}</h2>
-                {tasks
-                  .filter((task) => task.status === status)
-                  .map((task, index) => (
-                    <Draggable key={task.id} draggableId={task.id} index={index}>
-                      {(provided) => (
-                        <div
-                          ref={provided.innerRef}
-                          {...provided.draggableProps}
-                          {...provided.dragHandleProps}
-                          className="bg-white p-4 mb-2 rounded shadow"
-                        >
-                          <h3 className="font-semibold">{task.content}</h3>
-                          {task.priority && (
-                            <span className={`text-xs px-2 py-1 rounded ${
-                              task.priority === 'High' ? 'bg-red-200' :
-                              task.priority === 'Medium' ? 'bg-yellow-200' :
-                              'bg-green-200'
-                            }`}>
-                              {task.priority}
-                            </span>
-                          )}
-                          {task.dueDate && <p className="text-sm text-gray-500">{task.dueDate}</p>}
-                          <button onClick={() => onDeleteTask(task.id)}>Delete</button>
-                        </div>
-                      )}
-                    </Draggable>
-                  ))}
-                {provided.placeholder}
-                <button onClick={onCreateNew} className="flex justify-between items-center mt-2 p-1 w-full bg-black hover:bg-gray-400 text-gray-800 py-2 rounded">
-                  <span className='text-secondary-500'>
-                    Add new
-                  </span>
-                  <Image src="/icons/plus-icon.png" height="20" width="20" alt="Create" />
-                </button>
-              </div>
-            )}
-          </Droppable>
-        ))}
-      </div>
+    <DragDropContext onDragEnd={handleOnDragEnd}>
+      <Droppable droppableId="board" direction="horizontal" type="column">
+        {(provided) => (
+          <div
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2"
+            {...provided.droppableProps}
+            ref={provided.innerRef}
+          >
+            {columns.map((columnId, index) => (
+              <Column
+                key={columnId}
+                id={columnId}
+                todos={tasks.filter((task: any) => task.status === columnId)}
+                index={index}
+              />
+            ))}
+            {provided.placeholder}
+          </div>
+        )}
+      </Droppable>
     </DragDropContext>
+
   );
-}
+};
+
+export default TaskBoard;

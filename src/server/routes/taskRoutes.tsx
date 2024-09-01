@@ -1,7 +1,12 @@
 import express from 'express';
 import Task from '../models/Task'; 
 
+import authMiddleware from '../middleware/authMiddleware'; // Adjust path
+import { AuthenticatedRequest } from '@/types/types';
+
 const router = express.Router();
+
+router.use(authMiddleware); // Apply the middleware to all routes
 
 //// POST /api/tasks - Create a new task
 router.post('/newTask', async (req, res) => {
@@ -24,9 +29,10 @@ router.post('/newTask', async (req, res) => {
 
 
 // Get all tasks
-router.get('/AllTasks', async (_req, res) => {
+router.get('/AllTasks', authMiddleware, async (req, res) => {
   try {
-    const tasks = await Task.find();
+    const userId = req.body.userId;
+    const tasks = await Task.find({ userId });
     return res.status(200).json(tasks);
   } catch (error) {
     return res.status(500).json({ message: 'Failed to fetch tasks' });

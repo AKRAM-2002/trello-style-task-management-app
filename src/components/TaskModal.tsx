@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { createTask } from 'store/taskSlice';
 import axios from 'axios';
 
 interface TaskModalProps {
   isOpen: boolean;
   onClose: () => void;
-  
 }
 
 const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose }) => {
@@ -13,21 +14,24 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose }) => {
   const [priority, setPriority] = useState('');
   const [deadline, setDeadline] = useState('');
   const [description, setDescription] = useState('');
+  const dispatch = useDispatch();
 
   if (!isOpen) return null;
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     try {
-      const response = await axios.post('/api/tasks/newTask', {
+      const newTask = {
         title,
         status,
         priority,
         deadline,
         description,
-        userId: '', 
-      });
-      console.log('Task created:', response.data);
-      onClose(); // Close the modal after creating the task
+        userId: '66aa20e83ec6859ccb835936', // replace with actual userId
+      };
+      const response = await axios.post('http://localhost:4000/api/tasks/newTask', newTask);
+      dispatch(createTask(response.data));  // Add the task to Redux store
+      onClose();
     } catch (error) {
       console.error('Error creating task:', error);
     }
@@ -45,7 +49,6 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose }) => {
           </button>
         </div>
         <form onSubmit={handleSubmit}>
-          {/* Form Fields */}
           <div className="mb-4">
             <input
               type="text"
@@ -77,7 +80,7 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose }) => {
               <option value="">Select Priority</option>
               <option value="Low">Low</option>
               <option value="Medium">Medium</option>
-              <option value="High">High</option>
+              <option value="Urgent">Urgent</option>
             </select>
           </div>
           <div className="mb-4">

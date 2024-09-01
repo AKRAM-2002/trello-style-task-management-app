@@ -1,8 +1,29 @@
 import Link from 'next/link';
-import Image from 'next/image'; // Ensure this import is correct
+import Image from 'next/image'; 
 import { FaSearch } from 'react-icons/fa';
+import { useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
+import { setSearchString } from 'store/searchSlice';
+import { RootState } from 'store';
 
-export default function Header({ username, onCreateNew, onMenuClick}) {
+interface HeaderProps {
+  username: string;
+  onCreateNew: () => void;
+  onMenuClick: () => void;
+}
+
+export default function Header({ username, onCreateNew, onMenuClick} : HeaderProps) {
+  
+  const dispatch = useDispatch()
+  const searchString = useSelector((state : RootState) => state.search.searchString);
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    dispatch(setSearchString(e.target.value));
+    console.log(searchString);
+  };
+
+  
+  
   return (
     <header className="mb-8">
       {/* First row */}
@@ -81,6 +102,8 @@ export default function Header({ username, onCreateNew, onMenuClick}) {
             <input
               type="text"
               placeholder="Search..."
+              value={searchString}
+              onChange={handleSearchChange}
               className="flex-1 p-2 outline-none bg-transparent"
             />
             <FaSearch className="text-gray-500 mx-2" />

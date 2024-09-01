@@ -1,8 +1,9 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
-import userRoutes from '../../src/server/routes/userRoutes';
-import taskRoutes from '../../src/server/routes/taskRoutes'; // task routes
+import gptRoutes from './routes/gptRoutes'
+import userRoutes from './routes/userRoutes';
+import taskRoutes from './routes/taskRoutes'; // task routes
 import { MONGODB_URI, PORT } from '../config/env'; 
 
 const app = express();
@@ -30,6 +31,7 @@ mongoose.connect(MONGODB_URI)
 // Use routes
 app.use('/api/auth', userRoutes);
 app.use('/api/tasks', taskRoutes);
+app.use('/api', gptRoutes); 
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
