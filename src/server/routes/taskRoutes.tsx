@@ -2,7 +2,6 @@ import express from 'express';
 import Task from '../models/Task'; 
 
 import authMiddleware from '../middleware/authMiddleware'; // Adjust path
-import { AuthenticatedRequest } from '@/types/types';
 
 const router = express.Router();
 

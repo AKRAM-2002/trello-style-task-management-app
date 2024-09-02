@@ -1,36 +1,52 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
+import Cookies from 'js-cookie';
 
 // Async actions for CRUD operations
 export const fetchTasks = createAsyncThunk('tasks/fetchTasks', async () => {
-  const response = await axios.get('http://localhost:4000/api/tasks/userTasks', {
+  const token = Cookies.get('token'); // Retrieve the token from cookies
+  const response = await axios.get('http://localhost:4000/api/tasks/AllTasks', {
     headers: {
-      Authorization: `Bearer ${localStorage.getItem('token')}`,
+      Authorization: `Bearer ${token}`, // Include the token in the Authorization header
     },
   });
   return response.data;
 });
 
-
 export const createTask = createAsyncThunk('tasks/createTask', async (taskData) => {
-  const response = await axios.post('http://localhost:4000/api/tasks/newTask', taskData);
+  const token = Cookies.get('token');
+  const response = await axios.post('http://localhost:4000/api/tasks/newTask', taskData, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
   return response.data;
 });
 
 export const updateTask = createAsyncThunk('tasks/updateTask', async (taskData: any) => {
-  const { _id, ...updateData } = taskData; // Ensure the correct extraction of _id
-  const response = await axios.put(`http://localhost:4000/api/tasks/tasks/${_id}`, updateData);
+  const token = Cookies.get('token');
+  const { _id, ...updateData } = taskData;
+  const response = await axios.put(`http://localhost:4000/api/tasks/tasks/${_id}`, updateData, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
   return response.data;
 });
 
-
 export const deleteTask = createAsyncThunk('tasks/deleteTask', async (taskId) => {
-  await axios.delete(`http://localhost:4000/api/tasks/tasks/${taskId}`);
+  const token = Cookies.get('token');
+  await axios.delete(`http://localhost:4000/api/tasks/tasks/${taskId}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
   return taskId;
 });
 
 
 
+// Reducer 
 
 const taskSlice = createSlice({
   name: 'tasks',

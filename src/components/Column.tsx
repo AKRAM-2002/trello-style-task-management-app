@@ -8,15 +8,14 @@ import axios from 'axios';
 import { RootState } from 'store';
 import { useSelector } from 'react-redux';
 
+
 const Column = ({ id, todos, index }) => {
 
   const searchString = useSelector((state : RootState) => state.search.searchString);
-
   const dispatch = useDispatch();
-  const userId = useSelector((state: RootState) => state.user.id);
-
+  const userId = useSelector((state: RootState) => state.user.userId);
   
-
+  
   const handleCreateNew = async () => {
     const newTask = {
       title: 'New Task',
